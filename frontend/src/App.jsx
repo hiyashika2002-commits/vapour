@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 
 function App() {
   const [session, setSession] = useState(null);
+  const [page, setPage] = useState('dashboard');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

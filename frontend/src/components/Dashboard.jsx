@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { fetchAllStocks } from '../lib/finnhubApi';
 import Header from './Header';
 import StockCard from './StockCard';
 import { Activity, Star } from 'lucide-react';
@@ -15,14 +16,17 @@ const HERO_TAGS = [
   { text: 'Market 📈 Live', color: 'tag-sunflower', top: '55%', right: '20%', rot: '-8deg', scale: 0.9, blur: '1px', zIndex: 1, opacity: 0.8 },
 ];
 
+const POLL_INTERVAL = 15000; // 15 seconds — well within 60 calls/min free tier
+
 function Dashboard({ user, onLogout }) {
   const [stocks, setStocks] = useState({});
   const [sparklines, setSparklines] = useState({});
   const [subscribed, setSubscribed] = useState([]);
   const [connected, setConnected] = useState(false);
   const [loadingSubs, setLoadingSubs] = useState(true);
+  const sparkRef = useRef({});
 
-  // Load subscriptions from Supabase
+  // ── Load subscriptions from Supabase ─────────────────────────
   useEffect(() => {
     const fetchSubscriptions = async () => {
       try {
@@ -33,7 +37,6 @@ function Dashboard({ user, onLogout }) {
 
         if (error) {
           console.error('Error loading subscriptions:', error);
-          // Fallback to localStorage
           const saved = localStorage.getItem(`broker_subs_${user.id}`);
           if (saved) setSubscribed(JSON.parse(saved));
         } else {
@@ -51,47 +54,48 @@ function Dashboard({ user, onLogout }) {
     }
   }, [user]);
 
-  // Connect to SSE
+  // ── Poll Finnhub directly (no backend needed) ────────────────
   useEffect(() => {
-    let eventSource;
-    let reconnectTimer;
+    let timer;
+    let mounted = true;
 
-    const connectSSE = () => {
-      eventSource = new EventSource('http://localhost:3001/api/stream');
+    const poll = async () => {
+      try {
+        const data = await fetchAllStocks(SUPPORTED_TICKERS);
+        if (!mounted) return;
 
-      eventSource.onopen = () => setConnected(true);
+        setStocks(data);
+        setConnected(true);
 
-      eventSource.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          setStocks(payload.stocks || {});
-          setSparklines(payload.sparklines || {});
-        } catch (err) {
-          console.error('SSE parse error:', err);
-        }
-      };
-
-      eventSource.onerror = () => {
-        setConnected(false);
-        eventSource.close();
-        reconnectTimer = setTimeout(connectSSE, 3000);
-      };
+        // Build sparklines from successive polls
+        const updated = { ...sparkRef.current };
+        SUPPORTED_TICKERS.forEach((t) => {
+          if (data[t]?.price) {
+            if (!updated[t]) updated[t] = [];
+            updated[t] = [...updated[t], data[t].price].slice(-30);
+          }
+        });
+        sparkRef.current = updated;
+        setSparklines(updated);
+      } catch (err) {
+        console.error('Finnhub poll error:', err);
+        if (mounted) setConnected(false);
+      }
     };
 
-    connectSSE();
+    poll(); // initial fetch
+    timer = setInterval(poll, POLL_INTERVAL);
 
     return () => {
-      if (eventSource) eventSource.close();
-      if (reconnectTimer) clearTimeout(reconnectTimer);
+      mounted = false;
+      clearInterval(timer);
     };
   }, []);
 
-  // Toggle subscription
+  // ── Toggle subscription ──────────────────────────────────────
   const toggleSubscription = useCallback(
     async (ticker) => {
       const isCurrentlySubscribed = subscribed.includes(ticker);
-
-      // Optimistic update
       const newSubs = isCurrentlySubscribed
         ? subscribed.filter((s) => s !== ticker)
         : [...subscribed, ticker];
@@ -99,35 +103,26 @@ function Dashboard({ user, onLogout }) {
 
       try {
         if (isCurrentlySubscribed) {
-          // Unsubscribe: delete from Supabase
           const { error } = await supabase
             .from('subscriptions')
             .delete()
             .eq('user_id', user.id)
             .eq('ticker', ticker);
-
           if (error) throw error;
         } else {
-          // Subscribe: insert to Supabase
           const { error } = await supabase
             .from('subscriptions')
             .insert({ user_id: user.id, ticker });
-
           if (error) throw error;
         }
-
-        // Also save to localStorage as fallback
         localStorage.setItem(`broker_subs_${user.id}`, JSON.stringify(newSubs));
       } catch (err) {
         console.error('Subscription error:', err);
-        // Revert on error
         setSubscribed(subscribed);
       }
     },
     [subscribed, user]
   );
-
-
 
   // Sort: subscribed first
   const sortedTickers = [...SUPPORTED_TICKERS].sort((a, b) => {
@@ -185,8 +180,6 @@ function Dashboard({ user, onLogout }) {
           </p>
         </div>
 
-
-
         {/* Market Overview */}
         <div className="section-header">
           <h2 className="section-title">
@@ -194,7 +187,7 @@ function Dashboard({ user, onLogout }) {
             Market Overview
           </h2>
           <span className="section-subtitle">
-            Real-time prices • Auto-refreshing every 10s
+            Real-time prices via Finnhub • Auto-refreshing every 15s
           </span>
         </div>
 
