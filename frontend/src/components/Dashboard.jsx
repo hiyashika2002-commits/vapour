@@ -8,12 +8,27 @@ import { Activity, Star } from 'lucide-react';
 const SUPPORTED_TICKERS = ['GOOG', 'TSLA', 'AMZN', 'META', 'NVDA'];
 
 const HERO_TAGS = [
-  { text: 'TSLA 🚗 Auto', color: 'tag-lime', top: '10%', left: '20%', rot: '8deg', scale: 0.9, blur: '1.5px', zIndex: 1, opacity: 0.8 },
-  { text: 'NVDA 🧠 AI', color: 'tag-violet', top: '5%', right: '22%', rot: '-10deg', scale: 0.8, blur: '3px', zIndex: 1, opacity: 0.6 },
-  { text: 'GOOG 🔍 Tech', color: 'tag-sky', top: '38%', left: '16%', rot: '-6deg', scale: 0.95, blur: '2px', zIndex: 1, opacity: 0.75 },
-  { text: 'AMZN 📦 E-Comm', color: 'tag-tangerine', top: '22%', right: '18%', rot: '12deg', scale: 1.05, blur: '0px', zIndex: 3, opacity: 1 },
-  { text: 'META 💬 Social', color: 'tag-hot-pink', top: '65%', left: '22%', rot: '6deg', scale: 1.0, blur: '0px', zIndex: 3, opacity: 1 },
-  { text: 'Market 📈 Live', color: 'tag-sunflower', top: '55%', right: '20%', rot: '-8deg', scale: 0.9, blur: '1px', zIndex: 1, opacity: 0.8 },
+  // ── Top row ──
+  { text: 'TSLA 🚗 Auto', color: 'tag-lime', top: '8%', left: '18%', rot: '8deg', scale: 0.9, blur: '1.5px', zIndex: 1, opacity: 0.8 },
+  { text: 'NVDA 🧠 AI', color: 'tag-violet', top: '4%', right: '22%', rot: '-10deg', scale: 0.8, blur: '3px', zIndex: 1, opacity: 0.6 },
+  { text: 'BTC ₿ Crypto', color: 'tag-sunflower', top: '2%', left: '48%', rot: '5deg', scale: 0.7, blur: '4px', zIndex: 0, opacity: 0.45 },
+  { text: 'AAPL 🍎 Tech', color: 'tag-slate', top: '12%', right: '8%', rot: '-4deg', scale: 0.75, blur: '3.5px', zIndex: 0, opacity: 0.5 },
+
+  // ── Mid-left ──
+  { text: 'GOOG 🔍 Tech', color: 'tag-sky', top: '32%', left: '10%', rot: '-6deg', scale: 0.95, blur: '2px', zIndex: 1, opacity: 0.75 },
+  { text: 'MSFT 💻 Cloud', color: 'tag-coral', top: '48%', left: '6%', rot: '10deg', scale: 0.85, blur: '2.5px', zIndex: 1, opacity: 0.65 },
+  { text: 'DIS 🏰 Media', color: 'tag-ember', top: '22%', left: '3%', rot: '-12deg', scale: 0.7, blur: '4px', zIndex: 0, opacity: 0.4 },
+
+  // ── Mid-right ──
+  { text: 'AMZN 📦 E-Comm', color: 'tag-tangerine', top: '26%', right: '14%', rot: '12deg', scale: 1.05, blur: '0px', zIndex: 3, opacity: 1 },
+  { text: 'NFLX 🎬 Stream', color: 'tag-coral', top: '40%', right: '6%', rot: '-8deg', scale: 0.8, blur: '3px', zIndex: 1, opacity: 0.55 },
+
+  // ── Bottom row ──
+  { text: 'META 💬 Social', color: 'tag-hot-pink', top: '62%', left: '16%', rot: '6deg', scale: 1.0, blur: '0px', zIndex: 3, opacity: 1 },
+  { text: 'Market 📈 Live', color: 'tag-sunflower', top: '55%', right: '18%', rot: '-8deg', scale: 0.9, blur: '1px', zIndex: 1, opacity: 0.8 },
+  { text: 'SPY 📊 Index', color: 'tag-olive', top: '70%', right: '10%', rot: '7deg', scale: 0.75, blur: '3px', zIndex: 0, opacity: 0.5 },
+  { text: 'COIN 🪙 Fintech', color: 'tag-violet', top: '72%', left: '8%', rot: '-5deg', scale: 0.7, blur: '4px', zIndex: 0, opacity: 0.4 },
+  { text: 'AMD ⚡ Chips', color: 'tag-sky', top: '58%', left: '42%', rot: '3deg', scale: 0.65, blur: '5px', zIndex: 0, opacity: 0.35 },
 ];
 
 const POLL_INTERVAL = 15000; // 15 seconds — well within 60 calls/min free tier
