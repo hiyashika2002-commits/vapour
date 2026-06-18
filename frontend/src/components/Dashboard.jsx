@@ -39,6 +39,7 @@ function Dashboard({ user, onLogout }) {
   const [subscribed, setSubscribed] = useState([]);
   const [connected, setConnected] = useState(false);
   const [loadingSubs, setLoadingSubs] = useState(true);
+  const [loadingStocks, setLoadingStocks] = useState(true);
   const sparkRef = useRef({});
 
   // ── Load subscriptions from Supabase ─────────────────────────
@@ -81,6 +82,7 @@ function Dashboard({ user, onLogout }) {
 
         setStocks(data);
         setConnected(true);
+        setLoadingStocks(false);
 
         // Build sparklines from successive polls
         const updated = { ...sparkRef.current };
@@ -207,15 +209,35 @@ function Dashboard({ user, onLogout }) {
         </div>
 
         <div className="stock-grid">
-          {sortedTickers.map((ticker) => (
-            <StockCard
-              key={ticker}
-              stock={stocks[ticker]}
-              sparkline={sparklines[ticker]}
-              isSubscribed={subscribed.includes(ticker)}
-              onToggleSubscribe={toggleSubscription}
-            />
-          ))}
+          {loadingStocks
+            ? SUPPORTED_TICKERS.map((ticker) => (
+                <div key={ticker} className="stock-card skeleton-card">
+                  <div className="skeleton-card-top">
+                    <div className="skeleton-block skeleton-icon" />
+                    <div style={{ flex: 1 }}>
+                      <div className="skeleton-block skeleton-line-short" />
+                      <div className="skeleton-block skeleton-line-xs" />
+                    </div>
+                  </div>
+                  <div className="skeleton-block skeleton-price" />
+                  <div className="skeleton-block skeleton-chart" />
+                  <div className="skeleton-details">
+                    <div className="skeleton-block skeleton-line" />
+                    <div className="skeleton-block skeleton-line" />
+                    <div className="skeleton-block skeleton-line" />
+                    <div className="skeleton-block skeleton-line" />
+                  </div>
+                </div>
+              ))
+            : sortedTickers.map((ticker) => (
+                <StockCard
+                  key={ticker}
+                  stock={stocks[ticker]}
+                  sparkline={sparklines[ticker]}
+                  isSubscribed={subscribed.includes(ticker)}
+                  onToggleSubscribe={toggleSubscription}
+                />
+              ))}
         </div>
 
         {/* Watchlist Section */}
